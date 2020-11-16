@@ -1,0 +1,29 @@
+{
+  "name": "bootcamps-restapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeBlack03/Bootcamps-RestAPI.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CodeBlack03/Bootcamps-RestAPI/issues"
+  },
+  "homepage": "https://github.com/CodeBlack03/Bootcamps-RestAPI#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.10.14",
+    "node-geocoder": "^3.27.0",
+    "request": "^2.88.2",
+    "validator": "^13.1.17"
+  }
+}
