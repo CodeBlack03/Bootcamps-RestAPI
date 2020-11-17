@@ -4,18 +4,6 @@ const Courses = require("../model/course");
 const auth = require("../middleware/auth");
 const router = express.Router();
 
-// router.get("/courses:bootcamp-id", async (req, res) => {
-//   try {
-//     const courses = await Courses.find({ bootcamp: req.params.bootcamp - id });
-//     if (!courses) {
-//       return res.status(404).send("No course found");
-//     }
-//     res.send(courses);
-//   } catch (err) {
-//     res.status(500).send(err);
-//   }
-// });
-
 router.get("/courses", async (req, res) => {
   try {
     const excludeQuery = ["select", "sort", "page", "limit"];
@@ -30,13 +18,13 @@ router.get("/courses", async (req, res) => {
       (match) => `$${match}`
     );
     let query = req.query;
-    const courses = Courses.find(JSON.parse(queryStr))
+    let courses = Courses.find(JSON.parse(queryStr))
       .populate("bootcamp", "name description location website")
       .populate("user", "name role email");
     //pagination
     let pagination;
-    const page = query.page || 1;
-    const limit = query.limit || 10;
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
 
     const totalDocuments = await Courses.countDocument;
 
@@ -46,8 +34,9 @@ router.get("/courses", async (req, res) => {
     //   if (lastPage < totalDocuments) {
     //     pagination.pre(page - 1);
     //   }
-    courses.skip((page - 1) * limit).limit(limit);
-    courses.select(query.select);
+    courses = courses.skip((page - 1) * limit).limit(limit);
+    courses = courses.select(query.select);
+
     //Sort
     if (query.sort) {
       const sortBy = query.sort.split(",").join(" ");
@@ -58,7 +47,9 @@ router.get("/courses", async (req, res) => {
     const result = await courses;
     res.send(result);
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).send({
+      error: "Server Error",
+    });
   }
 });
 
@@ -102,6 +93,9 @@ router.patch("/courses/:id", auth, async (req, res) => {
   }
   const id = req.params.id;
   try {
+    if (req.user.role.toLowerCase() === "user") {
+      return res.status(400).send("You are not authorized to Update a Course");
+    }
     const course = await Courses.findOne({
       _id: req.params.id,
       user: req.user._id,
@@ -124,6 +118,9 @@ router.patch("/courses/:id", auth, async (req, res) => {
 
 router.delete("/courses/:id", auth, async (req, res) => {
   try {
+    if (req.user.role.toLowerCase() === "user") {
+      throw new Error();
+    }
     const course = await Courses.findOne({
       _id: req.params.id,
       user: req.user._id,
@@ -135,7 +132,9 @@ router.delete("/courses/:id", auth, async (req, res) => {
     await course.remove();
     res.status(200).send(course);
   } catch (error) {
-    res.status(401).send(error);
+    res.status(401).send({
+      error: "You are not authorized to delete a Course",
+    });
   }
 });
 

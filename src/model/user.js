@@ -27,8 +27,6 @@ var userSchema = new mongoose.Schema(
     },
     mobile: {
       type: String,
-
-      unique: true,
     },
     password: {
       type: String,
@@ -44,7 +42,16 @@ var userSchema = new mongoose.Schema(
       enum: ["user", "publisher"],
       default: "user",
     },
-
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpire: {
+      type: Date,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
     tokens: [
       {
         token: {

@@ -3,56 +3,32 @@ const geocoder = require("../utils/geocoder");
 const Bootcamps = require("../model/bootcamp");
 const auth = require("../middleware/auth");
 const router = new express.Router();
+const advancedResults = require("../middleware/advancedResults");
 
-router.get("/bootcamps", async (req, res) => {
-  try {
-    const excludeQuery = ["select", "sort", "page", "limit"];
-
-    let reqQuery = { ...req.query };
-    excludeQuery.forEach((q) => {
-      delete reqQuery[q];
-    });
-    let queryStr = JSON.stringify(reqQuery);
-    queryStr = queryStr.replace(
-      /\b(gt|gte|lt|lte|in)\b/g,
-      (match) => `$${match}`
-    );
-    let query = req.query;
-    let bootcamps = Bootcamps.find(JSON.parse(queryStr))
-      .populate({
-        path: "user",
-      })
-      .populate("reviews")
-      .populate("courses");
-
-    //pagination
-    let pagination;
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-
-    const totalDocuments = await Bootcamps.countDocument;
-
-    //   if (firstPage > 0) {
-    //     pagination.next(page + 1);
-    //   }
-    //   if (lastPage < totalDocuments) {
-    //     pagination.pre(page - 1);
-    //   }
-    bootcamps.skip((page - 1) * limit).limit(limit);
-    bootcamps.select(query.select);
-    //Sort
-    if (query.sort) {
-      const sortBy = query.sort.split(",").join(" ");
-      bootcamps.sort(sortBy);
-    } else {
-      bootcamps.sort("-createdAt");
+router.get(
+  "/bootcamps",
+  advancedResults(Bootcamps, [
+    {
+      path: "courses",
+      select: "title description tuition",
+    },
+    {
+      path: "user",
+      select: "name role email",
+    },
+    {
+      path: "reviews",
+    },
+  ]),
+  async (req, res) => {
+    try {
+      res.send(res.advancedResults);
+    } catch (error) {
+      console.log(error);
+      res.send(401).send(error);
     }
-    const result = await bootcamps;
-    res.send(result);
-  } catch (error) {
-    res.send(401).send(error);
   }
-});
+);
 
 router.get("/bootcamps/getbyradius", async (req, res) => {
   try {
@@ -115,6 +91,11 @@ router.post("/bootcamps", auth, async (req, res) => {
 
 router.delete("/bootcamps/:id", auth, async (req, res) => {
   try {
+    if (req.user.role.toLowerCase() === "user") {
+      return res
+        .status(400)
+        .send("You are not authorized to delete a Bootcamp");
+    }
     const bootcamp = await Bootcamps.findOne({
       _id: req.params.id,
       user: req.user._id,

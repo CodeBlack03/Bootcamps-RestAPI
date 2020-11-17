@@ -67,7 +67,6 @@ router.patch("/users/me", auth, async (req, res) => {
 
     res.status(200).send(req.user);
   } catch (err) {
-    console.log(err);
     res.status(400).send(err);
   }
 });
@@ -75,8 +74,7 @@ router.patch("/users/me", auth, async (req, res) => {
 router.delete("/users/me", auth, async (req, res) => {
   try {
     const user = await Users.findById(req.user._id);
-    console.log("User is", user);
-    user.remove();
+    await user.remove();
     res.send(user);
   } catch (err) {
     res.status(401).send(err);

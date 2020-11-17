@@ -33,9 +33,8 @@ router.get("/reviews", async (req, res) => {
       .populate("bootcamp", "name website")
       .populate("user", "name role email");
     let pagination;
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
     const totalDocuments = await Reviews.countDocument;
 
     //   if (firstPage > 0) {
@@ -97,6 +96,9 @@ router.patch("/reviews/:id", auth, async (req, res) => {
   }
   const id = req.params.id;
   try {
+    if (req.user.role.toLowerCase() === "user") {
+      return res.status(400).send("You are not authorized to update a Review");
+    }
     const review = await Reviews.findOne({
       _id: req.params.id,
       user: req.user._id,
@@ -118,19 +120,20 @@ router.patch("/reviews/:id", auth, async (req, res) => {
 
 router.delete("/reviews/:id", auth, async (req, res) => {
   try {
+    if (req.user.role.toLowerCase() === "publisher") {
+      return res.status(400).send("You are not authorized to delete a Review");
+    }
     const review = await Reviews.findOne({
       _id: req.params.id,
       user: req.user._id,
     });
-    console.log(review);
     if (!review) {
       return res.status(404).send("No review found!");
     }
 
     await review.remove();
-    res.status(200).send(review);
+    res.send(review);
   } catch (error) {
-    console.log(error);
     res.status(401).send(error);
   }
 });

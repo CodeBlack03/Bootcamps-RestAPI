@@ -23,7 +23,6 @@ const bootcampSchema = new mongoose.Schema(
     },
     address: {
       type: String,
-      required: true,
     },
     phone: {
       type: String,
@@ -47,6 +46,9 @@ const bootcampSchema = new mongoose.Schema(
           throw new Error("Email is invalid");
         }
       },
+    },
+    averageCost: {
+      type: Number,
     },
     location: {
       type: {
