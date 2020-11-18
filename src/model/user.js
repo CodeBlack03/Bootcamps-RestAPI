@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const mongoose = require("mongoose"); // Erase if already required
 const bcrypt = require("bcrypt");
 const validator = require("validator");
@@ -107,6 +108,21 @@ userSchema.statics.findByCredentials = async (email, password) => {
     throw new Error("Unable to login");
   }
   return user;
+};
+
+// Generate and hash password token
+userSchema.methods.getPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(20).toString("hex");
+
+  //Hash Token
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // Set expire
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+  return resetToken;
 };
 
 userSchema.pre("save", async function (next) {

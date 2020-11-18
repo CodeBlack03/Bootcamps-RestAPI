@@ -50,6 +50,9 @@ const bootcampSchema = new mongoose.Schema(
     averageCost: {
       type: Number,
     },
+    averageRating: {
+      type: Number,
+    },
     location: {
       type: {
         type: String,

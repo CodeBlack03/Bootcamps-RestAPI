@@ -76,7 +76,8 @@ router.post("/reviews", auth, async (req, res) => {
     if (req.user.role.toLowerCase() === "publisher") {
       return res.status(400).send("User must be an Admin or a User");
     }
-    const review = await Reviews.create({ ...req.body, user: req.user._id });
+    const review = new Reviews({ ...req.body, user: req.user._id });
+    await review.save();
     res.status(201).send(review);
   } catch (err) {
     res.status(401).send(err);

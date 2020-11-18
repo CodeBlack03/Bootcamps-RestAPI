@@ -3,7 +3,12 @@ const Users = require("../model/user");
 const auth = async (req, res, next) => {
   try {
     let token = req.header("Authorization");
+    //Set authorization From Bearer Token
     token = token.replace("Bearer ", "");
+
+    // Set authorization from cookie
+    // token = req.cookie.token;
+
     // console.log(token);
     const decoded = jwt.verify(token, process.env.AUTH_SECRET);
     const roleOfUser = (await Users.findOne({ _id: decoded._id })).role;
@@ -16,16 +21,19 @@ const auth = async (req, res, next) => {
     if (!user && roleOfUser.toLowerCase() !== "admin") {
       throw new Error();
     }
-    const options = {
-      expires: new Date(
-        Date.now() + process.env.AUTH_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
-      ),
-      httpOnly: true,
-    };
-    if (process.env.NODE_ENV === "production") {
-      options.secure = true;
-    }
-    res.status(200).cookie("token", token, options);
+
+    // Register Cookie for authorization
+    // const options = {
+    //   expires: new Date(
+    //     Date.now() + process.env.AUTH_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+    //   ),
+    //   httpOnly: true,
+    // };
+    // if (process.env.NODE_ENV === "production") {
+    //   options.secure = true;
+    // }
+    // res.status(200).cookie("token", token, options);
+
     req.token = token;
     req.user = user;
     next();
