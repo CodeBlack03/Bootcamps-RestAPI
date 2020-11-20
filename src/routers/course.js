@@ -2,56 +2,32 @@ const express = require("express");
 const bootcamp = require("../model/bootcamp");
 const Courses = require("../model/course");
 const auth = require("../middleware/auth");
+const advancedResults = require("../middleware/advancedResults");
+
 const router = express.Router();
 
-router.get("/courses", async (req, res) => {
-  try {
-    const excludeQuery = ["select", "sort", "page", "limit"];
-
-    let reqQuery = { ...req.query };
-    excludeQuery.forEach((q) => {
-      delete reqQuery[q];
-    });
-    let queryStr = JSON.stringify(reqQuery);
-    queryStr = queryStr.replace(
-      /\b(gt|gte|lt|lte|in)\b/g,
-      (match) => `$${match}`
-    );
-    let query = req.query;
-    let courses = Courses.find(JSON.parse(queryStr))
-      .populate("bootcamp", "name description location website")
-      .populate("user", "name role email");
-    //pagination
-    let pagination;
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
-
-    const totalDocuments = await Courses.countDocument;
-
-    //   if (firstPage > 0) {
-    //     pagination.next(page + 1);
-    //   }
-    //   if (lastPage < totalDocuments) {
-    //     pagination.pre(page - 1);
-    //   }
-    courses = courses.skip((page - 1) * limit).limit(limit);
-    courses = courses.select(query.select);
-
-    //Sort
-    if (query.sort) {
-      const sortBy = query.sort.split(",").join(" ");
-      courses.sort(sortBy);
-    } else {
-      courses.sort("-createdAt");
+router.get(
+  "/courses",
+  advancedResults(Bootcamps, [
+    {
+      path: "bootcamps",
+      select: "name website averageRating",
+    },
+    {
+      path: "user",
+      select: "name role email",
+    },
+  ]),
+  async (req, res) => {
+    try {
+      res.send(res.advancedResults);
+    } catch (err) {
+      res.status(500).send({
+        error: "Server Error",
+      });
     }
-    const result = await courses;
-    res.send(result);
-  } catch (err) {
-    res.status(500).send({
-      error: "Server Error",
-    });
   }
-});
+);
 
 router.get("/courses/:id", async (req, res) => {
   try {

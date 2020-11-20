@@ -1,11 +1,6 @@
 require("dotenv").config({ path: "../config/dev.env" });
 
 const express = require("express");
-const port = process.env.PORT || 3000;
-const bootcampRouter = require("./routers/bootcamp");
-const courseRouter = require("./routers/course");
-const userRouter = require("./routers/user");
-const reviewRouter = require("./routers/review");
 const cookieParser = require("cookie-parser");
 const mongoSanitize = require("express-mongo-sanitize");
 const helmet = require("helmet");
@@ -13,6 +8,12 @@ const xss = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const hpp = require("hpp");
 const cors = require("cors");
+const port = process.env.PORT || 3000;
+const bootcampRouter = require("./routers/bootcamp");
+const courseRouter = require("./routers/course");
+const userRouter = require("./routers/user");
+const reviewRouter = require("./routers/review");
+
 require("./db/mongoose");
 
 const app = express();

@@ -1,6 +1,8 @@
 const express = require("express");
 const Reviews = require("../model/reviews");
 const auth = require("../middleware/auth");
+const advancedResults = require("../middleware/advancedResults");
+
 const router = express.Router();
 
 router.get("/reviews/bootcamp/:bootcampId", async (req, res) => {
@@ -15,49 +17,26 @@ router.get("/reviews/bootcamp/:bootcampId", async (req, res) => {
   }
 });
 
-router.get("/reviews", async (req, res) => {
-  try {
-    const excludeQuery = ["select", "sort", "page", "limit"];
-
-    let reqQuery = { ...req.query };
-    excludeQuery.forEach((q) => {
-      delete reqQuery[q];
-    });
-    let queryStr = JSON.stringify(reqQuery);
-    queryStr = queryStr.replace(
-      /\b(gt|gte|lt|lte|in)\b/g,
-      (match) => `$${match}`
-    );
-    let query = req.query;
-    const reviews = Reviews.find(JSON.parse(queryStr))
-      .populate("bootcamp", "name website")
-      .populate("user", "name role email");
-    let pagination;
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
-    const totalDocuments = await Reviews.countDocument;
-
-    //   if (firstPage > 0) {
-    //     pagination.next(page + 1);
-    //   }
-    //   if (lastPage < totalDocuments) {
-    //     pagination.pre(page - 1);
-    //   }
-    reviews.skip((page - 1) * limit).limit(limit);
-    reviews.select(query.select);
-    //Sort
-    if (query.sort) {
-      const sortBy = query.sort.split(",").join(" ");
-      reviews.sort(sortBy);
-    } else {
-      reviews.sort("-createdAt");
+router.get(
+  "/reviews",
+  advancedResults(Bootcamps, [
+    {
+      path: "bootcamps",
+      select: "name website averageRating",
+    },
+    {
+      path: "user",
+      select: "name role email",
+    },
+  ]),
+  async (req, res) => {
+    try {
+      res.send(res.advancedResults);
+    } catch (error) {
+      res.status(500).send(error);
     }
-    const result = await reviews;
-    res.send(result);
-  } catch (error) {
-    res.status(500).send(error);
   }
-});
+);
 
 router.get("/reviews/:id", async (req, res) => {
   try {

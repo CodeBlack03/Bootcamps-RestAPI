@@ -2,8 +2,9 @@ const express = require("express");
 const geocoder = require("../utils/geocoder");
 const Bootcamps = require("../model/bootcamp");
 const auth = require("../middleware/auth");
-const router = new express.Router();
 const advancedResults = require("../middleware/advancedResults");
+
+const router = new express.Router();
 
 router.get(
   "/bootcamps",
@@ -36,16 +37,13 @@ router.get("/bootcamps/getbyradius", async (req, res) => {
     const loc = await geocoder.geocode(zipcode);
     const lat = loc[0].latitude;
     const lng = loc[0].longitude;
-    console.log(loc[0]);
     const radius = distance / 3963;
     const bootcamps = await Bootcamps.find({
       location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
     });
 
-    console.log("Bootcamps", bootcamps);
     res.status(200).send(bootcamps);
   } catch (err) {
-    console.log(err);
     res.status(400).send(err);
   }
 });
@@ -84,7 +82,6 @@ router.post("/bootcamps", auth, async (req, res) => {
     bootcamp.save();
     res.status(201).send(bootcamp);
   } catch (err) {
-    console.log(err);
     res.status(500).send(err);
   }
 });

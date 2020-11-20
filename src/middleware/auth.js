@@ -12,7 +12,6 @@ const auth = async (req, res, next) => {
     // console.log(token);
     const decoded = jwt.verify(token, process.env.AUTH_SECRET);
     const roleOfUser = (await Users.findOne({ _id: decoded._id })).role;
-    // console.log(decoded);
 
     const user = await Users.findOne({
       _id: decoded._id,
